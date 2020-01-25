@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.devexperts.account.Account;
 import com.devexperts.account.AccountKey;
+import com.devexperts.account.InsufficientBalanceException;
 
 import org.springframework.stereotype.Service;
 
@@ -34,7 +35,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void transfer(Account source, Account target, double amount) {
+    public void transfer(Account source, Account target, double amount) throws InsufficientBalanceException {
         AccountKey sourceKey = source.getAccountKey();
         AccountKey targetKey = target.getAccountKey();
         if (sourceKey.equals(targetKey)) {
@@ -57,7 +58,7 @@ public class AccountServiceImpl implements AccountService {
             try {
                 double sourceBalance = defaultIfNull(source.getBalance());
                 if (sourceBalance < amount) {
-                    return;
+                    throw new InsufficientBalanceException(source.getAccountKey());
                 }
                 source.setBalance(sourceBalance - amount);
                 target.setBalance(defaultIfNull(target.getBalance()) + amount);
